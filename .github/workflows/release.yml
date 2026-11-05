@@ -1,6 +1,7 @@
 name: Release
 
-# Push a tag such as v1.2.0 to build FrigateTV.wgt and publish it as a GitHub release.
+# Push a tag such as v1.2.0 (or create a release with that tag in the GitHub UI) to build
+# FrigateTV.wgt and attach it to the GitHub release.
 # Apps2Samsung installs the .wgt from the release (and signs it on install).
 on:
   push:
@@ -34,4 +35,11 @@ jobs:
       - name: Publish the release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" build/FrigateTV.wgt --title "$GITHUB_REF_NAME" --generate-notes
+        run: |
+          # The release may already exist (created in the GitHub UI, which also pushes the tag):
+          # then only attach the package to it.
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" build/FrigateTV.wgt --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" build/FrigateTV.wgt --title "$GITHUB_REF_NAME" --generate-notes
+          fi
