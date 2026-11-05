@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets"
+        id="http://frigate-tv.local/app" version="1.0.0" viewmodes="maximized">
+    <tizen:application id="FrigateTv1.FrigateTV" package="FrigateTv1" required_version="3.0"/>
+    <name>Frigate TV</name>
+    <description>Frigate NVR cameras live, alerts and recordings in the TV's native player</description>
+    <icon src="img/icon.png"/>
+    <content src="index.html"/>
+
+    <feature name="http://tizen.org/feature/screen.size.normal.1080.1920"/>
+    <tizen:profile name="tv-samsung"/>
+
+    <!-- Frigate (port 5000) and go2rtc (port 1984) on the local network. -->
+    <access origin="*" subdomains="true"/>
+    <tizen:allow-navigation>*</tizen:allow-navigation>
+    <tizen:content-security-policy>default-src * data: blob: 'unsafe-inline' 'unsafe-eval'; media-src * blob: data:; img-src * data: blob:</tizen:content-security-policy>
+
+    <tizen:privilege name="http://tizen.org/privilege/internet"/>
+    <tizen:privilege name="http://tizen.org/privilege/tv.inputdevice"/>
+
+    <tizen:setting screen-orientation="landscape" context-menu="disable"
+                   background-support="disable" encryption="disable"
+                   install-location="auto" hwkey-event="enable"/>
+</widget>
