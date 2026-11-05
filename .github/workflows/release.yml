@@ -1,0 +1,37 @@
+name: Release
+
+# Push a tag such as v1.2.0 to build FrigateTV.wgt and publish it as a GitHub release.
+# Apps2Samsung installs the .wgt from the release (and signs it on install).
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Run tests
+        run: node --test tests/*.test.js
+
+      - name: Set the app version from the tag
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          sed -i -E "s|(id=\"http://frigate-tv.local/app\" version=\")[^\"]*|\1${VERSION}|" app/config.xml
+          grep -q "version=\"${VERSION}\" viewmodes" app/config.xml
+
+      - name: Build FrigateTV.wgt
+        run: scripts/build.sh
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" build/FrigateTV.wgt --title "$GITHUB_REF_NAME" --generate-notes

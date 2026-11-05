@@ -41,7 +41,8 @@ Unofficial and not affiliated with Frigate or Blake Blackshear.
 
 ## Requirements
 
-- A Samsung TV running Tizen with **Developer Mode** (the app targets Tizen 3.0, 2017 models, and newer).
+- A Samsung TV running Tizen with **Developer Mode** (the app targets Tizen 3.0, 2017 models, and newer;
+  Orsay TVs from before 2015 are not supported).
   Developed and tested on a 2023 QN90C (Tizen 7).
 - **Frigate 0.14 or newer** (tested on 0.18.2), reachable from the TV on:
   - port **5000**: Frigate's internal API, which needs no login;
@@ -78,25 +79,39 @@ go2rtc:
 
 ## Install
 
+Install with [Apps2Samsung](https://github.com/Apps2Samsung/Apps2Samsung). It finds the TV on
+your network, creates the signing certificate and installs the app, so you don't need Tizen
+Studio. It runs on Windows, Linux, macOS, Android and iPhone.
+
 1. **Put the TV in Developer Mode:** open **Apps**, press `1` `2` `3` `4` `5` on the remote, switch
-   **Developer mode** on, enter your computer's IP address, then restart the TV.
-2. **Install the Tizen Studio CLI** on your computer (the `web-cli` installer from
-   [developer.tizen.org](https://developer.tizen.org/development/tizen-studio/download)) and create
-   a signing certificate (`tizen certificate …` and `tizen security-profiles add …`). Some recent TVs
-   only accept a **Samsung** certificate, created with the Samsung Certificate Extension in Tizen
-   Studio's Certificate Manager.
-3. **Build, sign and install:**
+   **Developer mode** on, enter the IP address of the computer or phone that runs Apps2Samsung
+   as the **Host PC IP**, then restart the TV.
+2. **Install Apps2Samsung** from its
+   [releases](https://github.com/Apps2Samsung/Apps2Samsung/releases) (on Windows also
+   `winget install Apps2Samsung.Apps2Samsung`).
+3. **Get the app package:** download `FrigateTV.wgt` from this project's
+   [releases](https://github.com/geffersonFerraz/frigate-tv-tizen/releases), or build it yourself
+   with `scripts/build.sh` (it writes an unsigned `build/FrigateTV.wgt`; Apps2Samsung signs it
+   at install time).
+4. **Install it:** open Apps2Samsung, pick the TV, choose **your own `.wgt`**, select
+   `FrigateTV.wgt` and press **Install**. The first install asks you to sign in to a Samsung
+   account once to create the certificate; it is reused for every install after that.
+
+   From a terminal, the same with `apps2samsung-cli`:
 
    ```sh
-   tizen package -t wgt -s <your-profile> -o build -- app   # signed build/*.wgt
-   sdb connect <tv-ip>
-   tizen install -n build/<package>.wgt -t <tv-serial>     # serial from `sdb devices`
+   apps2samsung-cli install build/FrigateTV.wgt --tv <tv-ip>
    ```
 
-   `scripts/build.sh` makes an unsigned `build/FrigateTV.wgt`, for tools that sign at install time.
+   To get updates through Apps2Samsung, add this repository as a source
+   (`apps2samsung-cli sources add github.com/geffersonFerraz/frigate-tv-tizen`, or the same in
+   the app); Frigate TV then appears in the catalog.
 
-4. **Open Frigate TV** on the TV and enter your Frigate address, for example
+5. **Open Frigate TV** on the TV and enter your Frigate address, for example
    `http://192.168.1.10:5000`.
+
+If Apps2Samsung reports that the TV is not ready (Developer Mode off, Host PC IP pointing
+elsewhere, restart needed), fix what it names and try again.
 
 ## Remote control
 
@@ -149,6 +164,15 @@ tests check that every language has all the keys and the same `{placeholders}`.
 ```sh
 node --test tests/*.test.js   # unit tests (Node.js 18+)
 scripts/build.sh              # validate and package build/FrigateTV.wgt (unsigned)
+apps2samsung-cli install build/FrigateTV.wgt --tv <tv-ip>   # sign and install on the TV
+```
+
+To publish a release, push a version tag. The `Release` workflow runs the tests, sets that
+version in `config.xml`, builds `FrigateTV.wgt` and attaches it to a GitHub release, where
+Apps2Samsung picks it up:
+
+```sh
+git tag v1.0.0 && git push origin v1.0.0
 ```
 
 You can also open `app/index.html` in a desktop Chrome to work on the UI: the arrow keys, Enter
@@ -158,6 +182,7 @@ and Esc stand in for the remote. Since the page runs from a file, Chrome may nee
 ## Credits
 
 - [Frigate](https://github.com/blakeblackshear/frigate) and [go2rtc](https://github.com/AlexxIT/go2rtc).
+- [Apps2Samsung](https://github.com/Apps2Samsung/Apps2Samsung), which installs the app on the TV.
 - `keys.js` and `focus.js`, and the AVPlay handling, come from
   [f1tv-tizen](https://github.com/nicbra/f1tv-tizen) (MIT).
 
